@@ -5,10 +5,14 @@
 #ifndef COROUTINE_UTHREAD_H
 #define COROUTINE_UTHREAD_H
 
+#if __APPLE__ && __MACH__
+#include <sys/ucontext.h>
+#else
 #include <ucontext.h>
+#endif
 
 #define STACK_SIZE 1024*128
-#define DEFAULT_STACK_NUM 16
+#define MAX_STACK_NUM 16
 
 class Uthread
 {

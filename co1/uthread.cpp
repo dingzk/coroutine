@@ -8,10 +8,10 @@
 #include <cstdlib>
 #include <string.h>
 
-Uthread::Uthread() : sched_running(-1), co_num(0), co_cap(DEFAULT_STACK_NUM)
+Uthread::Uthread() : sched_running(-1), co_num(0), co_cap(MAX_STACK_NUM)
 {
-    co = (coroutine_t *) malloc(sizeof(coroutine_t) * DEFAULT_STACK_NUM);
-    memset(co, 0, sizeof(coroutine_t) * DEFAULT_STACK_NUM);
+    co = (coroutine_t *) malloc(sizeof(coroutine_t) * MAX_STACK_NUM);
+    memset(co, 0, sizeof(coroutine_t) * MAX_STACK_NUM);
 }
 
 Uthread::~Uthread()
@@ -36,12 +36,7 @@ void Uthread::main_sched(Uthread *_this)
 
 int Uthread::create(CO_FUNC func, void *args)
 {
-    if (co_num > co_cap) {
-        co = (coroutine_t *)realloc(co, co_cap * 2 * sizeof(coroutine_t));
-        memset(co + co_cap, 0, co_cap * sizeof(coroutine_t));
-        co_cap *= 2;
-        assert(co != nullptr);
-    }
+    assert(co_num < co_cap);   // 不支持自动扩协程数据
     int slot;
     for (int i = 0; i < co_cap; ++i) {
         if (co[i].status <= READY) {
@@ -76,10 +71,14 @@ void Uthread::resume(int idx)
     assert(idx < co_cap && idx >= 0);
 
     enum STAT status = co[idx].status;
+    coroutine_t &C = co[idx];
     switch (status) {
         case SUSPEND:
             sched_running = idx;
-            swapcontext(&mctx, &co[idx].ctx);
+            C.status = ACTIVE;
+            swapcontext(&mctx, &C.ctx);
+            break;
+        case DEAD:
             break;
         default:
             assert(0);
