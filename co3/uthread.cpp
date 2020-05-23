@@ -13,8 +13,8 @@ Uthread::Uthread() : sched_running(-1), co_num(0), co_cap(DEFAULT_STACK_NUM)
 
     memset(&mctx, 0, sizeof(ucontext_t));
 
-    main_stack = (char *) malloc(sizeof(*main_stack) * STACK_SIZE);
-    memset(main_stack, 0, sizeof(*main_stack) * STACK_SIZE);
+    main_stack = (char *) malloc(sizeof(char) *STACK_SIZE);
+    memset(main_stack, 0, sizeof(char) *STACK_SIZE);
 
     co = (coroutine_t **) malloc(sizeof(coroutine_t *) * co_cap);
     memset(co, 0, sizeof(coroutine_t *) * co_cap);
@@ -123,7 +123,7 @@ void Uthread::resume(int idx)
 // swap in
 void Uthread::swap_in(coroutine_t *C)
 {
-    memset(main_stack, 0, sizeof(char) *STACK_SIZE);
+//    memset(main_stack, 0, sizeof(char) *STACK_SIZE);
     memcpy(main_stack + STACK_SIZE - C->sp_len, C->sp, C->sp_len);
 }
 
@@ -138,7 +138,8 @@ void Uthread::swap_out(coroutine_t *C)
     }
     C->sp_len = len;
     memcpy(C->sp, &dummy, C->sp_len);
-//    std::cout << "stack size : " << C->sp_len << std::endl;
+
+    std::cout << "stack size : " << C->sp_len << std::endl;
 }
 
 void Uthread::yield()
